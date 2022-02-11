@@ -21,6 +21,9 @@ public:
 
 	bool nativeEventFilter(const QByteArray& eventType, void* message, long* result);
 
+	void changeModeToInternal();
+	void changeModeToExtend();
+
 private:
 	void slotAboutToShowTrayMenu();
 	void slotAboutToHideTrayMenu();
@@ -29,9 +32,9 @@ private:
 
 	void writeToLog(const QString& text);
 
-	void changeModeToInternal();
-	void changeModeToExtend();
 	void closeEvent(QCloseEvent* event);
+
+	void MainWindow::changeModeToLog(bool result, const QString &previousTopology, const QString &currentTopology);
 
 private:
 	QPointer <QAction>			actionShowSettings;

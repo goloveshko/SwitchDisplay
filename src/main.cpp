@@ -64,12 +64,13 @@ int main(int argc, char *argv[])
     QApplication::setQuitOnLastWindowClosed(false);
 
     MainWindow w;
+    w.changeModeToInternal();
 
-    qApp->installNativeEventFilter(&w);
+    //qApp->installNativeEventFilter(&w);
 
-    int res = a.exec();
+    int res = 0;//a.exec();
 
-    qApp->removeNativeEventFilter(&w);
+    //qApp->removeNativeEventFilter(&w);
     
     return res;//a.exec();
 }

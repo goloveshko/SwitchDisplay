@@ -14,7 +14,7 @@
 
 MainWindow::MainWindow(QWidget* parent)
 	: QWidget(parent) {
-	WTSRegisterSessionNotification((HWND)this->winId(), NOTIFY_FOR_THIS_SESSION);
+	//WTSRegisterSessionNotification((HWND)this->winId(), NOTIFY_FOR_THIS_SESSION);
 	settings = new Settings();
 
 	logFile.reset(new QFile(QCoreApplication::applicationDirPath() + "/log.txt"));
@@ -22,14 +22,14 @@ MainWindow::MainWindow(QWidget* parent)
 
 	writeToLog("MainWindow started");
 
-	changeModeToInternal();
+	//changeModeToInternal();
 
-	createTrayIcon();
+	//createTrayIcon();
 }
 
 MainWindow::~MainWindow() {
 	writeToLog("MainWindow stopped");
-	WTSUnRegisterSessionNotification((HWND)this->winId());
+	//WTSUnRegisterSessionNotification((HWND)this->winId());
 }
 
 void MainWindow::createTrayIcon() {
@@ -117,28 +117,31 @@ void MainWindow::writeToLog(const QString& text) {
 	log << QDateTime::currentDateTime().toString() << " - " << text << Qt::endl; //Qt::ISODate
 }
 
-void MainWindow::changeModeToInternal() {
-	//bool result = Display::Internal();
-	bool result = true;
-
-	QStringList env = QProcess::systemEnvironment();
-	QString program = "DisplaySwitch.exe";
-	QStringList arguments = QStringList() << "/internal";
-	QProcess* process = new QProcess(qApp);
-	process->setEnvironment(env);
-	process->start(program, arguments);
-
-	QString currentTopologyString = Display::getDisplayCurrentTopologyString();
-	QString str = QString("%1(%2) - change mode to internal").arg(result ? "success" : "fall", currentTopologyString);
+void MainWindow::changeModeToLog(bool result, const QString &previousTopology, const QString &currentTopology) {
+	QApplication::beep();
+	QString str = QString("%1 change from %2 to %3").arg(result ? "success" : "fall", previousTopology, currentTopology);
 	writeToLog(str);
 }
 
-void MainWindow::changeModeToExtend() {
-	bool result = Display::Extend();
+void MainWindow::changeModeToInternal() {
+	QString previousTopology;
+	bool result = Display::Internal(previousTopology);
+// 	bool result = true;
+// 
+// 	QStringList env = QProcess::systemEnvironment();
+// 	QString program = "DisplaySwitch.exe";
+// 	QStringList arguments = QStringList() << "/internal";
+// 	QProcess* process = new QProcess(qApp);
+// 	process->setEnvironment(env);
+// 	process->start(program, arguments);
 
-	QString currentTopologyString = Display::getDisplayCurrentTopologyString();
-	QString str = QString("%1(%2) - change mode to extend").arg(result ? "success" : "fall", currentTopologyString);
-	writeToLog(str);
+	changeModeToLog(result, previousTopology, "internal");
+}
+
+void MainWindow::changeModeToExtend() {
+	QString previousTopology;
+	bool result = Display::Extend(previousTopology);
+	changeModeToLog(result, previousTopology, "extend");
 }
 
 void MainWindow::closeEvent(QCloseEvent* event) {
