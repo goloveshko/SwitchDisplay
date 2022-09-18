@@ -15,6 +15,21 @@ public:
     Settings(QWidget *parent = nullptr);
     ~Settings();
 
+    void setAutostart(bool autostart);
+    void setRunApplicationPath(const QString &path);
+    void setAutorunApplication(bool autorun);
+    void setKeySequence(const QString &keySequence);
+
+protected:
+    void writeWindowState();
+    void readWindowState();
+
+signals:
+    void signalAutostart(int state);
+    void signalAutorunApp(int state);
+    void signalShowBrowseDialog();
+    void signalKeySequenceChanged(const QKeySequence &keySequence);
+
 private:
     Ui::Settings *ui;
 };
