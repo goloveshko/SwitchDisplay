@@ -58,16 +58,16 @@ private slots:
 	void slotModeChanged(long result, const QString &previousTopology, const QString &newTopology);
 
 private:
-	QPointer <QAction>			actionShowSettings;
-	QPointer <QAction>			actionQuit;
-	QPointer <QSystemTrayIcon>	trayIcon;
-	QPointer <QMenu>			trayIconMenu;
-	QPointer <Settings>			settings;
-	QPointer <QHotkey>			hotkey;
-	QPointer <SettingsHelper>	settingsHelper;
-	QScopedPointer <QFile>		logFile;
-	QScopedPointer <DisplayThread> displayThread;
-	bool						exitOnDone;
+	QPointer <QAction>				actionShowSettings;
+	QPointer <QAction>				actionQuit;
+	QPointer <QSystemTrayIcon>		trayIcon;
+	QPointer <QMenu>				trayIconMenu;
+	QPointer <Settings>				settings;
+	QPointer <QHotkey>				hotkey;
+	QScopedPointer <SettingsHelper>	settingsHelper;
+	QScopedPointer <QFile>			logFile;
+	QScopedPointer <DisplayThread>	displayThread;
+	bool							exitOnDone;
 	
 };
 

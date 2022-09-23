@@ -112,6 +112,8 @@ void MainWindow::slotShowSettings() {
 	{
 		//hotkey->setRegistered(false);
 		settings->show();
+		settings->raise();
+		settings->activateWindow();
 	}
 
 	//raise();
@@ -139,6 +141,7 @@ bool MainWindow::nativeEventFilter(const QByteArray& eventType, void* message, l
 }
 */
 void MainWindow::writeToLog(const QString& text) {
+	settings->addToLog(text);
 	return;
 	if (!logFile.get()) {
 		logFile.reset(new QFile(QCoreApplication::applicationDirPath() + "/log.txt"));
@@ -240,12 +243,12 @@ void MainWindow::registerHotKey() {
 		QString currentTopology = displayThread->getDisplayCurrentTopologyString();
 		if(currentTopology == "internal") {
 			qDebug() << "DISPLAYCONFIG_TOPOLOGY_EXTERNAL";
-			writeToLog("DISPLAYCONFIG_TOPOLOGY_EXTERNAL");
+			writeToLog("Hot key external");
 			startDisplayThread(DISPLAYCONFIG_TOPOLOGY_EXTERNAL);
 		}
 		else {
 			qDebug() << "DISPLAYCONFIG_TOPOLOGY_INTERNAL";
-			writeToLog("DISPLAYCONFIG_TOPOLOGY_INTERNAL");
+			writeToLog("Hot key internal");
 			startDisplayThread(DISPLAYCONFIG_TOPOLOGY_INTERNAL);
 		}
 	});

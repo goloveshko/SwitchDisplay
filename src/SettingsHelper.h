@@ -11,22 +11,28 @@ public:
     explicit SettingsHelper(QObject *parent = nullptr);
     ~SettingsHelper();
 
-    static QString showApplicationPath(QWidget *parent);
-    static void setApplicationPath(const QString &script);
-    static QString getApplicationPath(const QString &key);
-    static QString getApplicationPath();
+	QString showApplicationPath(QWidget* parent);
+	void setApplicationPath(const QString& script);
+	QString getApplicationPath(const QString& key);
+	QString getApplicationPath();
 
-    static bool getAutostart();
-    static void setAutostart(bool autostart);
+    void setAutostart(bool autostart);
+	bool getAutostart() const;
+	
+    void setExitOnDone(bool exitOnDone);
+	bool getExitOnDone() const;
 
-    static bool getExitOnDone();
-    static void setExitOnDone(bool exitOnDone);
+	void setAutorunApp(bool autorunApp);
+	bool getAutorunApp() const;
 
-    static void setAutorunApp(bool autorunApp);
-    static bool getAutorunApp();
+	void setKeySequence(const QString& keySequence);
+	QString getKeySequence() const;
 
-    static void setKeySequence(const QString &keySequence);
-    static QString getKeySequence();
+	void setWindowState(const QByteArray& geometry);
+	QByteArray getWindowState() const;
+
+    void setModeTo(const QString& modeTo);
+    QString getModeTo() const;
 
     /*
     static QString getRecordingDirectoryFfmpeg();

@@ -4,14 +4,15 @@
 #include <QFileDialog>
 #include <QTextStream>
 
-
 #define APPLICATION_PATH "Settings/Application path"
 #define AUTOSTART_KEY qApp->applicationName()
 #define AUTOSTART_PATH "HKEY_CURRENT_USER\\Software\\Microsoft\\Windows\\CurrentVersion\\Run"
 
-#define EXIT_ON_DONE "Settings/Exit on done"
-#define AUTORUN_APP "Settings/Autorun app"
-#define KEY_SEQUENCE "Settings/Key sequence"
+#define EXIT_ON_DONE	"Settings/Exit on done"
+#define AUTORUN_APP		"Settings/Autorun app"
+#define KEY_SEQUENCE	"Settings/Key sequence"
+#define KEY_GEOMETRY	"Settings/Geometry"
+#define KEY_MODE_TO		"Settings/ModeTo"
 
 SettingsHelper::SettingsHelper(QObject *parent)
     : QObject(parent)
@@ -21,7 +22,6 @@ SettingsHelper::SettingsHelper(QObject *parent)
 SettingsHelper::~SettingsHelper()
 {
 }
-
 
 QString SettingsHelper::showApplicationPath(QWidget *parent)
 {
@@ -56,6 +56,12 @@ QString SettingsHelper::getApplicationPath()
 	return result;
 }
 
+bool SettingsHelper::getAutostart() const  {
+	QSettings settings(AUTOSTART_PATH, QSettings::NativeFormat);
+	bool result = settings.contains(AUTOSTART_KEY);
+	return result;
+}
+
 void SettingsHelper::setAutostart(bool autostart) {
 	QSettings settings(AUTOSTART_PATH, QSettings::NativeFormat);
 	if(autostart) {
@@ -65,29 +71,24 @@ void SettingsHelper::setAutostart(bool autostart) {
 	}
 }
 
-bool SettingsHelper::getAutostart() {
-	QSettings settings(AUTOSTART_PATH, QSettings::NativeFormat);
-	bool result = settings.contains(AUTOSTART_KEY);
-	return result;
-}
-
 void SettingsHelper::setExitOnDone(bool exitOnDone) {
 	QSettings settings;
 	settings.setValue(EXIT_ON_DONE, exitOnDone);
 }
 
-bool SettingsHelper::getExitOnDone() {
+bool SettingsHelper::getExitOnDone() const {
 	QSettings settings;
 	bool result = settings.value(EXIT_ON_DONE, false).toBool();
 	return result;
 }
+
 
 void SettingsHelper::setAutorunApp(bool autorunApp) {
 	QSettings settings;
 	settings.setValue(AUTORUN_APP, autorunApp);
 }
 
-bool SettingsHelper::getAutorunApp() {
+bool SettingsHelper::getAutorunApp() const  {
 	QSettings settings;
 	bool result = settings.value(AUTORUN_APP, false).toBool();
 	return result;
@@ -98,11 +99,33 @@ void SettingsHelper::setKeySequence(const QString &keySequence) {
 	settings.setValue(KEY_SEQUENCE, keySequence);
 }
 
-QString SettingsHelper::getKeySequence() {
+QString SettingsHelper::getKeySequence() const  {
 	QSettings settings;
 	QString keySequence = settings.value(KEY_SEQUENCE).toString();
 
 	return keySequence;
+}
+
+void SettingsHelper::setWindowState(const QByteArray &geometry) {
+	QSettings settings;
+	settings.setValue(KEY_GEOMETRY, geometry);
+}
+
+QByteArray SettingsHelper::getWindowState() const {
+	QSettings settings;
+	const QByteArray geometry = settings.value(KEY_GEOMETRY).toByteArray();
+	return geometry;
+}
+
+void SettingsHelper::setModeTo(const QString& modeTo) {
+	QSettings settings;
+	settings.setValue(KEY_MODE_TO, modeTo);
+}
+
+QString SettingsHelper::getModeTo() const {
+	QSettings settings;
+	QString modeTo = settings.value(KEY_MODE_TO).toString();
+	return modeTo;
 }
 
 /*

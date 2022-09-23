@@ -6,20 +6,19 @@
    <rect>
     <x>0</x>
     <y>0</y>
-    <width>635</width>
-    <height>257</height>
+    <width>381</width>
+    <height>266</height>
    </rect>
   </property>
   <property name="windowTitle">
    <string>Settings</string>
   </property>
-  <layout class="QGridLayout" name="gridLayout">
-   <item row="2" column="0">
-    <widget class="QLabel" name="label_2">
-     <property name="text">
-      <string>Hotkey</string>
-     </property>
-    </widget>
+  <layout class="QGridLayout" name="gridLayout" columnstretch="0,10,0">
+   <item row="2" column="1" colspan="2">
+    <widget class="QKeySequenceEdit" name="keySequenceEdit"/>
+   </item>
+   <item row="1" column="1" colspan="2">
+    <widget class="QComboBox" name="comboBoxModeTo"/>
    </item>
    <item row="0" column="0" colspan="3">
     <widget class="QCheckBox" name="checkBoxAutostart">
@@ -27,19 +26,6 @@
       <string>Start application on Windows start up</string>
      </property>
     </widget>
-   </item>
-   <item row="2" column="1" colspan="2">
-    <widget class="QKeySequenceEdit" name="keySequenceEdit"/>
-   </item>
-   <item row="1" column="0">
-    <widget class="QLabel" name="label">
-     <property name="text">
-      <string>Switch display to:</string>
-     </property>
-    </widget>
-   </item>
-   <item row="1" column="1" colspan="2">
-    <widget class="QComboBox" name="comboBoxModeTo"/>
    </item>
    <item row="3" column="0" colspan="3">
     <layout class="QHBoxLayout" name="horizontalLayout">
@@ -71,6 +57,30 @@
       </widget>
      </item>
     </layout>
+   </item>
+   <item row="2" column="0">
+    <widget class="QLabel" name="label_2">
+     <property name="text">
+      <string>Hotkey</string>
+     </property>
+    </widget>
+   </item>
+   <item row="1" column="0">
+    <widget class="QLabel" name="label">
+     <property name="text">
+      <string>Switch display to:</string>
+     </property>
+    </widget>
+   </item>
+   <item row="4" column="0" colspan="3">
+    <widget class="QPlainTextEdit" name="plainTextEditLog">
+     <property name="lineWrapMode">
+      <enum>QPlainTextEdit::NoWrap</enum>
+     </property>
+     <property name="readOnly">
+      <bool>true</bool>
+     </property>
+    </widget>
    </item>
   </layout>
  </widget>

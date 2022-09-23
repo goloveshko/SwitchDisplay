@@ -4,19 +4,28 @@
 #include <QThread>
 #include <QMessageBox>
 #include <QCommandLineParser>
+#include <QSharedMemory>
 #ifdef Q_OS_WIN
 #include <Windows.h>
 #endif // Q_OS_WIN 
 
+static const char* INSTANCE_GUID = "B327B8B8-D9F3-4763-9B39-99DD13D1FD92";
+
 int main(int argc, char *argv[])
 {
+	QSharedMemory sharedMemory;
+	sharedMemory.setKey(INSTANCE_GUID);
+	if (sharedMemory.create(1) == false) {
+		return 0;
+	}
+
 #ifdef Q_OS_WIN
 	//SetProcessDPIAware(); // call before the main event loop
 #endif // Q_OS_WIN 
 
 	// Set sensible defaults
-	QCoreApplication::setAttribute(Qt::AA_EnableHighDpiScaling);
-	QGuiApplication::setHighDpiScaleFactorRoundingPolicy(Qt::HighDpiScaleFactorRoundingPolicy::PassThrough);
+	//QCoreApplication::setAttribute(Qt::AA_EnableHighDpiScaling);
+	//QGuiApplication::setHighDpiScaleFactorRoundingPolicy(Qt::HighDpiScaleFactorRoundingPolicy::PassThrough);
 
 /*
 #if QT_VERSION >= QT_VERSION_CHECK(5,6,0)
@@ -89,10 +98,10 @@ int main(int argc, char *argv[])
 	} else if(isSetInternal) {
 		//w.showSettings();
 		w.changeModeToInternal();
+	} else {
+		w.changeModeToInternal();
+		//w.showSettings();
 	}
-// 	} else {
-// 		w.changeModeToInternal();
-// 	}
 
     int res = app.exec();
     

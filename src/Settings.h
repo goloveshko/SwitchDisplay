@@ -12,6 +12,14 @@ class Settings : public QDialog
     Q_OBJECT
 
 public:
+	enum ModeTo {
+        Internal,
+        External,
+        Extend
+	};
+	Q_ENUM(ModeTo)
+
+public:
     Settings(QWidget *parent = nullptr);
     ~Settings();
 
@@ -19,10 +27,14 @@ public:
     void setRunApplicationPath(const QString &path);
     void setAutorunApplication(bool autorun);
     void setKeySequence(const QString &keySequence);
+    void addToLog(const QString& log);
 
 protected:
-    void writeWindowState();
-    void readWindowState();
+    void saveSettings();
+    void loadSettings();
+
+protected slots:
+    void comboBoxModeToChanged(const QString& itemText);
 
 signals:
     void signalAutostart(int state);

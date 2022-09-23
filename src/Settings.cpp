@@ -1,6 +1,8 @@
 #include "Settings.h"
 #include "./ui_Settings.h"
-#include <QSettings>
+#include "SettingsHelper.h"
+#include <QDateTime>
+#include <QMetaEnum>
 
 Settings::Settings(QWidget *parent)
     : QDialog(parent)
@@ -13,13 +15,23 @@ Settings::Settings(QWidget *parent)
     connect(ui->checkBoxAutorunApp, &QCheckBox::stateChanged, this, &Settings::signalAutorunApp);
 	connect(ui->toolButtonBrowse,  &QAbstractButton::clicked, this, &Settings::signalShowBrowseDialog);
     connect(ui->keySequenceEdit, &QKeySequenceEdit::keySequenceChanged, this, &Settings::signalKeySequenceChanged);
+    connect(ui->comboBoxModeTo, &QComboBox::currentTextChanged, this, &Settings::comboBoxModeToChanged);
+	
+    QMetaEnum metaEnum = QMetaEnum::fromType<Settings::ModeTo>();
 
-    readWindowState();
+    for (int i = 0; i < metaEnum.keyCount(); i++)
+	{
+        Settings::ModeTo mode = (Settings::ModeTo)metaEnum.value(i);
+        const auto modeStr = QMetaEnum::fromType<Settings::ModeTo>().valueToKey(mode);
+        ui->comboBoxModeTo->addItem(modeStr, mode);
+	}
+
+    loadSettings();
 }
 
 Settings::~Settings()
 {
-    writeWindowState();
+    saveSettings();
     delete ui;
 }
 
@@ -41,14 +53,34 @@ void Settings::setKeySequence(const QString &keySequence) {
     ui->keySequenceEdit->setKeySequence(QKeySequence(keySequence));
 }
 
-void Settings::writeWindowState()
+void Settings::addToLog(const QString &log)
 {
-	QSettings settings;
-	settings.setValue("Geometry", saveGeometry());
+    QDateTime dt = QDateTime::currentDateTime();
+    QString text = QString("%1 - %2\n").arg(dt.toString()).arg(log);
+    ui->plainTextEditLog->moveCursor(QTextCursor::Start);
+    ui->plainTextEditLog->insertPlainText(text);
 }
 
-void Settings::readWindowState()
+void Settings::saveSettings()
 {
-	QSettings settings;
-	restoreGeometry(settings.value("Geometry").toByteArray());
+    SettingsHelper settings;
+
+    auto itemText = ui->comboBoxModeTo->currentText();
+	settings.setModeTo(itemText);
+
+    settings.setWindowState(saveGeometry());
+}
+
+void Settings::loadSettings()
+{
+	SettingsHelper settings;
+
+	auto modeStr = settings.getModeTo();
+	ui->comboBoxModeTo->setCurrentText(modeStr);
+
+    restoreGeometry(settings.getWindowState());
+}
+
+void Settings::comboBoxModeToChanged(const QString &itemText)
+{
 }
