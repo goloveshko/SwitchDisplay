@@ -5,6 +5,7 @@
 #include <QMessageBox>
 #include <QCommandLineParser>
 #include <QSharedMemory>
+#include <QOperatingSystemVersion>
 #ifdef Q_OS_WIN
 #include <Windows.h>
 #endif // Q_OS_WIN 
@@ -58,6 +59,10 @@ int main(int argc, char *argv[])
 // 		qputenv("QT_SCALE_FACTOR", QString::number(factor).toLocal8Bit());
 // 	}
 */
+#if defined(Q_OS_WIN)
+//	if (QOperatingSystemVersion::current() >= QOperatingSystemVersion::Windows10)
+//		QApplication::setStyle("Fusion");
+#endif
 	//qputenv("QT_AUTO_SCREEN_SCALE_FACTOR", "1");
     QApplication app(argc, argv);
 	//qputenv("QT_AUTO_SCREEN_SCALE_FACTOR", "1");

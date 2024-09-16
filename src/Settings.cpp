@@ -11,8 +11,8 @@ Settings::Settings(QWidget *parent)
     setWindowFlags(windowFlags() & ~Qt::WindowContextHelpButtonHint);
     ui->setupUi(this);
 
-	connect(ui->checkBoxAutostart, &QCheckBox::stateChanged, this, &Settings::signalAutostart);
-    connect(ui->checkBoxAutorunApp, &QCheckBox::stateChanged, this, &Settings::signalAutorunApp);
+	connect(ui->checkBoxAutostart, &QCheckBox::checkStateChanged, this, &Settings::signalAutostart);
+    connect(ui->checkBoxAutorunApp, &QCheckBox::checkStateChanged, this, &Settings::signalAutorunApp);
 	connect(ui->toolButtonBrowse,  &QAbstractButton::clicked, this, &Settings::signalShowBrowseDialog);
     connect(ui->keySequenceEdit, &QKeySequenceEdit::keySequenceChanged, this, &Settings::signalKeySequenceChanged);
     connect(ui->comboBoxModeTo, &QComboBox::currentTextChanged, this, &Settings::comboBoxModeToChanged);

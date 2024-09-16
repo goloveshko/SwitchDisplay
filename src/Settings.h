@@ -37,8 +37,8 @@ protected slots:
     void comboBoxModeToChanged(const QString& itemText);
 
 signals:
-    void signalAutostart(int state);
-    void signalAutorunApp(int state);
+    void signalAutostart(Qt::CheckState state);
+    void signalAutorunApp(Qt::CheckState state);
     void signalShowBrowseDialog();
     void signalKeySequenceChanged(const QKeySequence &keySequence);
 

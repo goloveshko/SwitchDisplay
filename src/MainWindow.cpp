@@ -273,14 +273,14 @@ void MainWindow::slotRunExternalApp() {
 	process->setProcessEnvironment(env);
 	process->start(program, arguments);
 
-	connect(process, &QProcess::readyReadStandardOutput, [=]() {
+    connect(process, &QProcess::readyReadStandardOutput, [=, this]() {
 		QString output = process->readAllStandardOutput();
 		writeToLog(output);
 		//addConsoleOutput(output);
 		qDebug() << output.trimmed();
 	});
 
-	connect(process, &QProcess::readyReadStandardError, [=]() {
+    connect(process, &QProcess::readyReadStandardError, [=, this]() {
 		QString output = process->readAllStandardError();
 		writeToLog(output);
 		//addConsoleOutput(output);
@@ -303,11 +303,11 @@ void MainWindow::loadSettings() {
 	settings->setAutorunApplication(settingsHelper->getAutorunApp());
 	settings->setKeySequence(settingsHelper->getKeySequence());
 
-	connect(settings, &Settings::signalAutostart, [this](int state) {
+	connect(settings, &Settings::signalAutostart, [this](Qt::CheckState state) {
 		settingsHelper->setAutostart(state != 0);
 	});
 
-	connect(settings, &Settings::signalAutorunApp, [this](int state) {
+	connect(settings, &Settings::signalAutorunApp, [this](Qt::CheckState state) {
 		settingsHelper->setAutorunApp(state != 0);
 	});
 
