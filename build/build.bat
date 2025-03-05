@@ -3,6 +3,6 @@ call "C:\Program Files (x86)\Microsoft Visual Studio\2019\Community\VC\Auxiliary
 set QTDIR=c:\Qt\5.15.2\msvc2019_64\
 set PATH=%QTDIR%\bin;%PATH%
 
-cmake -Bbld -G "Visual Studio 16 2019" -DCMAKE_BUILD_TYPE=Release ./src
+cmake -B../bld -G "Visual Studio 16 2019" -DCMAKE_BUILD_TYPE=Release ../src
 
 pause
