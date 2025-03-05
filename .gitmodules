@@ -1,3 +1,6 @@
 [submodule "src/external/QHotkey"]
 	path = src/external/QHotkey
 	url = https://github.com/Skycoder42/QHotkey.git
+[submodule "src/external/AudioDeviceLib"]
+	path = src/external/AudioDeviceLib
+	url = https://github.com/fredemmott/AudioDeviceLib.git
