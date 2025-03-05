@@ -4,5 +4,7 @@ set QTDIR=c:\Qt\6.8.2\msvc2022_64
 set PATH=%QTDIR%\bin;%PATH%
 
 cmake -B../bld_qt6 -G "Visual Studio 17 2022" ../src
+cmake --build ../bld_qt6 --config Release --target ALL_BUILD
+cmake --build ../bld_qt6 --config Debug --target ALL_BUILD
 
 pause

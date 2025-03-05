@@ -20,52 +20,7 @@ int main(int argc, char *argv[])
 		return 0;
 	}
 
-#ifdef Q_OS_WIN
-	//SetProcessDPIAware(); // call before the main event loop
-#endif // Q_OS_WIN 
-
-	// Set sensible defaults
-	//QCoreApplication::setAttribute(Qt::AA_EnableHighDpiScaling);
-	//QGuiApplication::setHighDpiScaleFactorRoundingPolicy(Qt::HighDpiScaleFactorRoundingPolicy::PassThrough);
-
-/*
-#if QT_VERSION >= QT_VERSION_CHECK(5,6,0)
-	//QApplication::setAttribute(Qt::AA_DisableHighDpiScaling);
-// 	QApplication::setAttribute(Qt::AA_EnableHighDpiScaling); // DPI support
-// 	QCoreApplication::setAttribute(Qt::AA_UseHighDpiPixmaps); //HiDPI pixmaps
-
-		//QSettings settings(_organizationName, "3");
-	bool automaticScaling = true;//settings.value(SettingKey::toString(SettingKey::APPEARANCE_AUTO_HIDPI_SCALING), false).toBool();
-
-	qunsetenv("QT_DEVICE_PIXEL_RATIO");
-	if(qgetenv("QT_AUTO_SCREEN_SCALE_FACTOR").isEmpty()) {
-		qputenv("QT_AUTO_SCREEN_SCALE_FACTOR", automaticScaling ? "1" : "0");
-// 		QGuiApplication::setAttribute(Qt::AA_EnableHighDpiScaling); // DPI support
-// 		QCoreApplication::setAttribute(Qt::AA_UseHighDpiPixmaps); //HiDPI pixmaps
-	}
-
-	QApplication::setAttribute(Qt::AA_DisableHighDpiScaling, false);
-	QApplication::setHighDpiScaleFactorRoundingPolicy(
-		Qt::HighDpiScaleFactorRoundingPolicy::Floor);
-	
-	//qputenv("QT_AUTO_SCREEN_SCALE_FACTOR", QByteArray("1"));
-#else
-	qputenv("QT_DEVICE_PIXEL_RATIO", QByteArray("1"));
-#endif // QT_VERSION
-
-
-// 	if(qgetenv("QT_SCALE_FACTOR").isEmpty() && !automaticScaling) {
-// 		auto factor = 60 / 100.0;//settings.value(SettingKey::toString(SettingKey::APPEARANCE_HIDPI_SCALING_FACTOR), 100).toInt() / 100.0;
-// 		qputenv("QT_SCALE_FACTOR", QString::number(factor).toLocal8Bit());
-// 	}
-*/
-#if defined(Q_OS_WIN)
-//	if (QOperatingSystemVersion::current() >= QOperatingSystemVersion::Windows10)
-//		QApplication::setStyle("Fusion");
-#endif
-	//qputenv("QT_AUTO_SCREEN_SCALE_FACTOR", "1");
     QApplication app(argc, argv);
-	//qputenv("QT_AUTO_SCREEN_SCALE_FACTOR", "1");
     QCoreApplication::setOrganizationName("Goloveshko");
 	QCoreApplication::setApplicationName("Switch Display");
 	QCoreApplication::setOrganizationDomain("https://github.com/goloveshko/");
@@ -107,6 +62,7 @@ int main(int argc, char *argv[])
 		w.changeModeToInternal();
 		//w.showSettings();
 	}
+
 
     int res = app.exec();
     

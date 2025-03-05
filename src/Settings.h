@@ -2,6 +2,7 @@
 #define SETTINGS_H
 
 #include <QDialog>
+#include <QVariantMap>
 
 QT_BEGIN_NAMESPACE
 namespace Ui { class Settings; }
@@ -29,9 +30,16 @@ public:
     void setKeySequence(const QString &keySequence);
     void addToLog(const QString& log);
 
+    void updateAudioDevices(QMap<QString, QVariantMap> devices);
+    bool watchNewAudio() const;
+
+	QString getAudioDefaultId() const;
+	QString getAudioToId() const;
+
 protected:
     void saveSettings();
     void loadSettings();
+    void setAutostartIcon();
 
 protected slots:
     void comboBoxModeToChanged(const QString& itemText);

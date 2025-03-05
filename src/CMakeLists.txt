@@ -10,10 +10,11 @@ set(CMAKE_AUTOUIC ON)
 set(CMAKE_AUTOMOC ON)
 set(CMAKE_AUTORCC ON)
 
+source_group("Generated Files" REGULAR_EXPRESSION "((mocs_.*\.cpp)|(qrc_.*\.cpp)|(.*\.qrc)|(ui_.*\.h)|(autouic_.*\.stamp))$")
+
 set(CMAKE_CXX_STANDARD 20)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
 set(CMAKE_CXX_EXTENSIONS OFF)
-
 
 SET(EXECUTABLE_OUTPUT_PATH ${PROJECT_BINARY_DIR}/bin)
 if(MSVC)
@@ -40,19 +41,33 @@ set(QHOTKEY_EXAMPLES OFF)
 add_subdirectory(external/QHotkey)
 include_directories(external/QHotkey/QHotkey)
 
+add_subdirectory(external/AudioDeviceLib)
+set_directory_properties(PROPERTIES EXCLUDE_FROM_ALL TRUE)
+set_property(DIRECTORY external/AudioDeviceLib/demos PROPERTY  EXCLUDE_FROM_ALL TRUE)
+include_directories(external/AudioDeviceLib/include)
+
+add_subdirectory(autorun)
+include_directories(autorun)
+
 set(PROJECT_SOURCES
-        main.cpp
-		main.qrc
-        DisplayThread.cpp
-        DisplayThread.h
-        MainWindow.cpp
-        MainWindow.h
-        Settings.cpp
-        Settings.h
-        Settings.ui
-		SettingsHelper.cpp
-		SettingsHelper.h
-		res/SwitchDisplay.rc
+    AudioDeviceManager.cpp
+    AudioDeviceManager.h
+    main.cpp
+	main.qrc
+    DisplayThread.cpp
+    DisplayThread.h
+    MainWindow.cpp
+    MainWindow.h
+    Settings.cpp
+    Settings.h
+    Settings.ui
+	SettingsHelper.cpp
+	SettingsHelper.h
+	res/SwitchDisplay.rc
+    autorun/AuthorizationHelper.cpp
+    autorun/AuthorizationHelper.h
+    autorun/TaskSchedulerManager.cpp
+    autorun/TaskSchedulerManager.h
 )
 
 if(${QT_VERSION_MAJOR} GREATER_EQUAL 6)
@@ -73,7 +88,7 @@ else()
     endif()
 endif()
 
-target_link_libraries(${PROJECT} PRIVATE Qt${QT_VERSION_MAJOR}::Widgets QHotkey::QHotkey)
+target_link_libraries(${PROJECT} PRIVATE Qt${QT_VERSION_MAJOR}::Widgets QHotkey::QHotkey AudioDeviceLib taskschd comsuppw)
 
 set_target_properties(${PROJECT} PROPERTIES
     MACOSX_BUNDLE_GUI_IDENTIFIER my.example.com
@@ -81,6 +96,16 @@ set_target_properties(${PROJECT} PROPERTIES
     MACOSX_BUNDLE_SHORT_VERSION_STRING ${PROJECT_VERSION_MAJOR}.${PROJECT_VERSION_MINOR}
     MACOSX_BUNDLE TRUE
     WIN32_EXECUTABLE TRUE
+)
+
+find_program(WINDEPLOYQT_EXECUTABLE NAMES windeployqt PATHS "${Qt6_DIR}/../bin" REQUIRED)
+if(NOT WINDEPLOYQT_EXECUTABLE)
+    message(FATAL_ERROR "windeployqt not found!")
+endif()
+
+add_custom_command(TARGET ${PROJECT} POST_BUILD
+    COMMAND ${WINDEPLOYQT_EXECUTABLE} $<TARGET_FILE:${PROJECT}>
+    COMMENT "Deploying Qt libraries with windeployqt..."
 )
 
 if(QT_VERSION_MAJOR EQUAL 6)

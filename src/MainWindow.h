@@ -13,6 +13,8 @@
 #include "DisplayThread.h"
 #include "SettingsHelper.h"
 
+#include "AudioDeviceManager.h"
+
 class MainWindow :
     public QWidget, public QAbstractNativeEventFilter
 {
@@ -24,10 +26,10 @@ public:
 
 	void createTrayIcon();
 
-	//bool nativeEventFilter(const QByteArray& eventType, void* message, long* result);
 	bool nativeEventFilter(const QByteArray& eventType, void* message, qintptr* result);
 
 	void changeModeToInternal();
+	void changeModeToExternal();
 	void changeModeToExtend();
 
 	void showSettings();
@@ -57,6 +59,10 @@ private:
 private slots:
 	void slotModeChanged(long result, const QString &previousTopology, const QString &newTopology);
 
+
+	void slotAudioDeviceAdded(const QString& deviceName, const QString& deviceId);
+	void slotAudioDeviceRemoved(const QString& deviceName, const QString& deviceId);
+
 private:
 	QPointer <QAction>				actionShowSettings;
 	QPointer <QAction>				actionQuit;
@@ -64,10 +70,12 @@ private:
 	QPointer <QMenu>				trayIconMenu;
 	QPointer <Settings>				settings;
 	QPointer <QHotkey>				hotkey;
+	QPointer < AudioDeviceManager> audioDeviceManager;
 	QScopedPointer <SettingsHelper>	settingsHelper;
 	QScopedPointer <QFile>			logFile;
 	QScopedPointer <DisplayThread>	displayThread;
 	bool							exitOnDone;
-	
+	QString							currentTopology;
+	bool							isDefaultMode;
 };
 

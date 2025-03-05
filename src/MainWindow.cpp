@@ -7,33 +7,23 @@
 #include <QTimer>
 
 
-// #include <windows.h>
-// #pragma comment(lib, "user32.lib")
-
-// #include <WtsApi32.h>
-// #pragma comment(lib, "Wtsapi32.lib")
-
 MainWindow::MainWindow(bool isExit, QWidget *parent)
 	: QWidget(parent)
 	, hotkey(new QHotkey(this))
 	, settingsHelper(new SettingsHelper(this))
 	, settings(new Settings(this))
+	, audioDeviceManager(new AudioDeviceManager(this))
+	, isDefaultMode(true)
 	, exitOnDone(isExit) {
-	//WTSRegisterSessionNotification((HWND)this->winId(), NOTIFY_FOR_THIS_SESSION);
 	displayThread.reset(new DisplayThread(this));
+	auto devices = audioDeviceManager->getAudioDevicesInfo();
+	settings->updateAudioDevices(devices);
 
 	connect(displayThread.get(), &DisplayThread::signalModeChanged, this, &MainWindow::slotModeChanged);
-
-	//settings = new Settings();
-
-	//logFile.reset(new QFile(QCoreApplication::applicationDirPath() + "/log.txt"));
-	//logFile->open(QFile::Append | QFile::Text | QFile::ReadWrite);
+	connect(audioDeviceManager.get(), &AudioDeviceManager::signalDeviceAdded, this, &MainWindow::slotAudioDeviceAdded);
+	connect(audioDeviceManager.get(), &AudioDeviceManager::signalDeviceAdded, this, &MainWindow::slotAudioDeviceRemoved);
 
 	writeToLog("Started");
-
-	//changeModeToInternal();
-
-	//QTimer::singleShot(1000, [this]() { this->createTrayIcon(); });
 
 	if(!exitOnDone) {
 		loadSettings();
@@ -47,7 +37,6 @@ MainWindow::MainWindow(bool isExit, QWidget *parent)
 MainWindow::~MainWindow() {
 	writeToLog("Stopped");
 	stopDisplayThread();
-	//WTSUnRegisterSessionNotification((HWND)this->winId());
 }
 
 void MainWindow::createTrayIcon() {
@@ -106,43 +95,18 @@ void MainWindow::slotShowSettings() {
 	if (settings->isVisible())
 	{
 		settings->hide();
-		//hotkey->setRegistered(true);
 	}
 	else
 	{
-		//hotkey->setRegistered(false);
 		settings->show();
 		settings->raise();
 		settings->activateWindow();
 	}
-
-	//raise();
-	//activateWindow();
 }
-/*
-bool MainWindow::nativeEventFilter(const QByteArray& eventType, void* message, long* result) {
-	//if (eventType == "windows_generic_MSG" || eventType == "windows_dispatcher_MSG")
-	{
-		MSG* pMsg = reinterpret_cast<MSG*>(message);
-		
-		if (pMsg->message == WM_ENDSESSION)
-		{
-			writeToLog("WM_ENDSESSION received");
-			changeModeToInternal();
-		}
 
-		if (pMsg->message == WM_QUERYENDSESSION)
-		{
-			writeToLog("WM_QUERYENDSESSION received");
-			changeModeToInternal();
-		}
-	}
-	return false;
-}
-*/
 void MainWindow::writeToLog(const QString& text) {
 	settings->addToLog(text);
-	return;
+	//return;
 	if (!logFile.get()) {
 		logFile.reset(new QFile(QCoreApplication::applicationDirPath() + "/log.txt"));
 		logFile->open(QFile::Append | QFile::Text | QFile::ReadWrite);
@@ -160,28 +124,10 @@ void MainWindow::changeModeToLog(const QString &result, const QString &previousT
 
 void MainWindow::changeModeToInternal() {
 	startDisplayThread(DISPLAYCONFIG_TOPOLOGY_INTERNAL);
-// 	QString previousTopology;
-// 	bool result = DisplayThread().Internal(previousTopology);
-// 
-// 	int count = 20;
-// 
-// 	while(!result && previousTopology != "internal" && count > 0) {
-// 		QThread::usleep(100);
-// 		count--;
-// 		result = DisplayThread().Internal(previousTopology);
-// 	}
+}
 
-
-// 	bool result = true;
-// 
-// 	QStringList env = QProcess::systemEnvironment();
-// 	QString program = "DisplaySwitch.exe";
-// 	QStringList arguments = QStringList() << "/internal";
-// 	QProcess* process = new QProcess(qApp);
-// 	process->setEnvironment(env);
-// 	process->start(program, arguments);
-
-	//changeModeToLog(result, previousTopology, "internal");
+void MainWindow::changeModeToExternal() {
+	startDisplayThread(DISPLAYCONFIG_TOPOLOGY_EXTERNAL);
 }
 
 void MainWindow::changeModeToExtend() {
@@ -201,6 +147,7 @@ void MainWindow::startDisplayThread(DISPLAYCONFIG_TOPOLOGY_ID topologyId) {
 	stopDisplayThread();
 	displayThread->setDisplayMode(topologyId);
 	displayThread->start();
+	isDefaultMode = topologyId == DISPLAYCONFIG_TOPOLOGY_INTERNAL;
 }
 
 void MainWindow::stopDisplayThread() {
@@ -217,10 +164,27 @@ void MainWindow::slotModeChanged(long result, const QString &previousTopology, c
 	QString resultStr = QString("%1(0x%2)").arg(qt_error_string(result)).arg(result, 8, 16, QLatin1Char('0'));
 	changeModeToLog(resultStr, previousTopology, newTopology);
 
-	if(newTopology == "external") {
-		qDebug() << "Run external app";
-		writeToLog("Run external app");
+	currentTopology = newTopology;
+
+	if(currentTopology == "external") {
+		auto deviceId = settings->getAudioToId();
+		//auto deviceId = settings->getAudioDefaultId();
+		audioDeviceManager->setDefaultAudioDevice(deviceId);
+
+		auto devicename = audioDeviceManager->getAudioDeviceName(deviceId);
+		qDebug() << "Run external app:" << devicename << "|" << deviceId;
+		writeToLog("Run external app: " + devicename + " | " + deviceId);
+
 		QTimer::singleShot(1000, this, &MainWindow::slotRunExternalApp);
+	}
+	else {
+		auto deviceId = settings->getAudioDefaultId();
+		//auto deviceId = settings->getAudioToId();
+		audioDeviceManager->setDefaultAudioDevice(deviceId);
+		
+		auto devicename = audioDeviceManager->getAudioDeviceName(deviceId);
+		qDebug() << "Run internal app:" << devicename << "|" << deviceId;
+		writeToLog("Run internal app: " + devicename + " | " + deviceId);
 	}
 
 	if(exitOnDone){//settingsHelper->getExitOnDone()) {
@@ -234,29 +198,25 @@ void MainWindow::showSettings() {
 
 void MainWindow::registerHotKey() {
 	hotkey->setShortcut(QKeySequence(settingsHelper->getKeySequence()), true); // QKeySequence("Meta+Y"), true);
-	qDebug() << "Is segistered:" << hotkey->isRegistered();
+	//qDebug() << "Is segistered:" << hotkey->isRegistered();
 
 	connect(hotkey, &QHotkey::activated, [&]() {
 		if(settings->isVisible()) {
-			return;
+			//return;
 		}
 		QString currentTopology = displayThread->getDisplayCurrentTopologyString();
 		if(currentTopology == "internal") {
-			qDebug() << "DISPLAYCONFIG_TOPOLOGY_EXTERNAL";
+			//qDebug() << "DISPLAYCONFIG_TOPOLOGY_EXTERNAL";
 			writeToLog("Hot key external");
-			startDisplayThread(DISPLAYCONFIG_TOPOLOGY_EXTERNAL);
+			changeModeToExternal();
+			//changeModeToInternal();
 		}
 		else {
-			qDebug() << "DISPLAYCONFIG_TOPOLOGY_INTERNAL";
+			//qDebug() << "DISPLAYCONFIG_TOPOLOGY_INTERNAL";
 			writeToLog("Hot key internal");
-			startDisplayThread(DISPLAYCONFIG_TOPOLOGY_INTERNAL);
+			changeModeToInternal();
 		}
 	});
-
-// 	connect(hotkey, &QHotkey::activated, qApp, [&]() {
-// 		qDebug() << "Hotkey Activated - the application will quit now";
-// 		qApp->quit();
-// 	});
 }
 
 void MainWindow::slotRunExternalApp() {
@@ -320,8 +280,8 @@ void MainWindow::loadSettings() {
 		hotkey->setShortcut(QKeySequence(settingsHelper->getKeySequence()), true);
 	});
 }
+
 bool MainWindow::nativeEventFilter(const QByteArray& eventType, void* message, qintptr* result) {
-//bool MainWindow::nativeEventFilter(const QByteArray &eventType, void *message, long *result) {
 	Q_UNUSED(eventType);
 	Q_UNUSED(result);
 	MSG *m = static_cast<MSG *>(message);
@@ -341,4 +301,19 @@ bool MainWindow::winEventFilter(MSG *msg, long *result) {
 		break;
 	}
 	return false;
+}
+
+void MainWindow::slotAudioDeviceAdded(const QString& deviceName, const QString& deviceId)
+{
+	if (settings->watchNewAudio() && currentTopology == "external")
+		audioDeviceManager->setDefaultAudioDevice(deviceId);
+
+	QString resultStr = QString("slotAudioDeviceAdded: Topology(%1), Name(%2), ID(%3)").arg(currentTopology).arg(deviceName).arg(deviceId);
+	writeToLog(resultStr);
+}
+
+void MainWindow::slotAudioDeviceRemoved(const QString& deviceName, const QString& deviceId)
+{
+	QString resultStr = QString("slotAudioDeviceRemoved: Topology(%1), Name(%2), ID(%3)").arg(currentTopology).arg(deviceName).arg(deviceId);
+	writeToLog(resultStr);
 }

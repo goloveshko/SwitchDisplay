@@ -31,8 +31,20 @@ public:
 	void setWindowState(const QByteArray& geometry);
 	QByteArray getWindowState() const;
 
+	void setModeDefault(const QString& modeTo);
+	QString getModeDefault() const;
+
     void setModeTo(const QString& modeTo);
     QString getModeTo() const;
+
+	void setAudioDefault(const QString& value);
+	QString getAudioDefault() const;
+
+	void setAudioTo(const QString& value);
+	QString getAudioTo() const;
+
+	void setWatchNewAudio(bool value);
+	bool getWatchNewAudio() const;
 
     /*
     static QString getRecordingDirectoryFfmpeg();

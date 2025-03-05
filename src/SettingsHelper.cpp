@@ -3,6 +3,8 @@
 #include <QCoreApplication>
 #include <QFileDialog>
 #include <QTextStream>
+#include "TaskSchedulerManager.h"
+#include "AuthorizationHelper.h"
 
 #define APPLICATION_PATH "Settings/Application path"
 #define AUTOSTART_KEY qApp->applicationName()
@@ -12,7 +14,12 @@
 #define AUTORUN_APP		"Settings/Autorun app"
 #define KEY_SEQUENCE	"Settings/Key sequence"
 #define KEY_GEOMETRY	"Settings/Geometry"
+#define KEY_MODE_DEFAULT "Settings/ModeDefault"
 #define KEY_MODE_TO		"Settings/ModeTo"
+#define KEY_WATCH_NEW_AUDIO	"Settings/WatchNewAudio"
+
+#define KEY_AUDIO_DEFAULT "Settings/AudioDefault"
+#define KEY_AUDIO_TO "Settings/AudioTo"
 
 SettingsHelper::SettingsHelper(QObject *parent)
     : QObject(parent)
@@ -56,19 +63,18 @@ QString SettingsHelper::getApplicationPath()
 	return result;
 }
 
-bool SettingsHelper::getAutostart() const  {
-	QSettings settings(AUTOSTART_PATH, QSettings::NativeFormat);
-	bool result = settings.contains(AUTOSTART_KEY);
+bool SettingsHelper::getAutostart() const {
+	TaskSchedulerManager manager;
+	bool result = manager.taskExists();
 	return result;
 }
 
 void SettingsHelper::setAutostart(bool autostart) {
-	QSettings settings(AUTOSTART_PATH, QSettings::NativeFormat);
-	if(autostart) {
-		settings.setValue(AUTOSTART_KEY, QDir::toNativeSeparators(QCoreApplication::applicationFilePath()));
-	} else {
-		settings.remove(AUTOSTART_KEY);
-	}
+	QStringList arguments;
+	arguments << (autostart ? "-i" : "-u");
+	
+	const QString program = QDir(QCoreApplication::applicationDirPath()).absoluteFilePath("autorun.exe");
+	AuthorizationHelper::execute(program, arguments);
 }
 
 void SettingsHelper::setExitOnDone(bool exitOnDone) {
@@ -117,6 +123,17 @@ QByteArray SettingsHelper::getWindowState() const {
 	return geometry;
 }
 
+void SettingsHelper::setModeDefault(const QString& modeTo) {
+	QSettings settings;
+	settings.setValue(KEY_MODE_DEFAULT, modeTo);
+}
+
+QString SettingsHelper::getModeDefault() const {
+	QSettings settings;
+	QString modeTo = settings.value(KEY_MODE_DEFAULT).toString();
+	return modeTo;
+}
+
 void SettingsHelper::setModeTo(const QString& modeTo) {
 	QSettings settings;
 	settings.setValue(KEY_MODE_TO, modeTo);
@@ -128,257 +145,41 @@ QString SettingsHelper::getModeTo() const {
 	return modeTo;
 }
 
-/*
-QString SettingsHelper::getRecordingDirectoryFfmpeg()
-{
-	QString result = getRecordingDirectory(RECORDING_DIRECTORY_FFMPEG);
-
-	return result;
-}
-
-void SettingsHelper::setRecordingDirectory(const QString &key, const QString &directory)
-{
-	QString fileName = getSettingsPath();
-	QSettings settings(fileName, QSettings::NativeFormat);
-	settings.setValue(key, directory);
-}
-
-QString SettingsHelper::getRecordingDuration()
-{
-	QString fileName = getSettingsPath();
-	QSettings settings(fileName, QSettings::NativeFormat);
-	QString result = settings.value(RECORDING_DURATION, "20").toString();
-
-	return result;
-}
-
-void SettingsHelper::setRecordingDuration(const QString &duration)
-{
-	QString fileName = getSettingsPath();
-	QSettings settings(fileName, QSettings::NativeFormat);
-	settings.setValue(RECORDING_DURATION, duration);
-}
-
-void SettingsHelper::saveDBParams(const QString &hostname, const QString &port, const QString &username, const QString &password)
-{
-	QString fileName = getSettingsPath();
-
-	QSettings settings(fileName, QSettings::NativeFormat);
-	settings.beginGroup("MySQL");
-	settings.setValue(MYSQL_HOSTNAME, hostname);
-	settings.setValue(MYSQL_PORT, port);
-	settings.setValue(MYSQL_USERNAME, username);
-	settings.setValue(MYSQL_PASSWORD, setParams(MYSQL_PASSWORD, password));
-	QSettings::Status status = settings.status();
-	settings.endGroup();
-}
-
-void SettingsHelper::loadDBParams(QString &hostname, QString &port, QString &username, QString &password)
-{
-	QString fileName = getSettingsPath();
-	QSettings settings(fileName, QSettings::NativeFormat);
-
-	settings.beginGroup("MySQL");
-	hostname = settings.value(MYSQL_HOSTNAME, "127.0.0.1").toString();
-	port = settings.value(MYSQL_PORT, "3306").toString();
-	username = settings.value(MYSQL_USERNAME, "user").toString();
-	password = getParams(MYSQL_PASSWORD, settings.value(MYSQL_PASSWORD).toString());
-
-	settings.endGroup();
-}
-
-QString SettingsHelper::getParams(const QString &key, const QString &value)
-{
-	QByteArray ba1;
-	ba1.append(key.toUtf8());
-	ba1 = ba1.toHex();
-
-	QByteArray ba2;
-	ba2.append(value.toUtf8());
-
-	QString result = QByteArray::fromBase64(ba2);
-	result = result.left(result.count() - ba1.count());
-
-	return result;
-}
-
-QString SettingsHelper::setParams(const QString &key, const QString &value)
-{
-	QByteArray ba1;
-	ba1.append(key.toUtf8());
-	ba1 = ba1.toHex();
-
-	QByteArray ba2;
-	ba2.append(value.toUtf8() + ba1);
-	return ba2.toBase64();
-}
-
-QString SettingsHelper::showFfmpegExe(QWidget *parent)
-{
-	QString defDir = SettingsHelper::getRecordingFfmpegExe();
-	QString ffmpegExe = QFileDialog::getOpenFileName(parent, QString(), defDir, "ffmpeg.exe");
-	if(!ffmpegExe.isEmpty())
-	{
-		setRecordingFfmpegExe(ffmpegExe);
-	}
-	return ffmpegExe;
-}
-
-void SettingsHelper::setRecordingFfmpegExe(const QString &ffmpegExe)
-{
-	QString fileName = getSettingsPath();
-	QSettings settings(fileName, QSettings::NativeFormat);
-	settings.setValue(RECORDING_FFMPEG_EXE, ffmpegExe);
-}
-
-QString SettingsHelper::getRecordingFfmpegExe()
-{
-	QString defArg = "";
-	QString fileName = getSettingsPath();
-	QSettings settings(fileName, QSettings::NativeFormat);
-	QString result = settings.value(RECORDING_FFMPEG_EXE, defArg).toString();
-
-	return result;
-}
-
-QString SettingsHelper::showRecordingDirectoryFfmpeg(QWidget *parent)
-{
-	QString defDir = SettingsHelper::getRecordingDirectory(RECORDING_DIRECTORY_FFMPEG);
-	QString dir = QFileDialog::getExistingDirectory(parent, tr("Open Directory"), defDir, QFileDialog::ShowDirsOnly);
-	if(!dir.isEmpty())
-	{
-		setRecordingDirectory(RECORDING_DIRECTORY_FFMPEG, dir);
-	}
-	return dir;
-}
-
-QString SettingsHelper::showNginxExe(QWidget *parent)
-{
-	QString defDir = SettingsHelper::getNginxExe();
-	QString exe = QFileDialog::getOpenFileName(parent, QString(), defDir, "nginx.exe");
-	if(!exe.isEmpty())
-	{
-		setNginxExe(exe);
-	}
-	return exe;
-}
-
-void SettingsHelper::setNginxExe(const QString &nginxExe)
-{
-	QString fileName = getSettingsPath();
-	QSettings settings(fileName, QSettings::NativeFormat);
-	settings.setValue(NGINX_EXE, nginxExe);
-}
-
-QString SettingsHelper::getNginxExe()
-{
-	QString defArg = "";
-	QString fileName = getSettingsPath();
-	QSettings settings(fileName, QSettings::NativeFormat);
-	QString result = settings.value(NGINX_EXE, defArg).toString();
-
-	return result;
-}
-
-void SettingsHelper::setRecordingEnable(const QString &key, bool enable)
-{
-	QString fileName = getSettingsPath();
-	QSettings settings(fileName, QSettings::NativeFormat);
-	settings.setValue(key, enable);
-}
-
-bool SettingsHelper::getRecordingEnable(const QString &key, bool defArg)
-{
-	QString fileName = getSettingsPath();
-	QSettings settings(fileName, QSettings::NativeFormat);
-	bool result = settings.value(key, defArg).toBool();
-
-	return result;
-}
-
-void SettingsHelper::setRecordingEnable(bool enable)
-{
-	setRecordingEnable(RECORDING_ENABLE, enable);
-}
-
-bool SettingsHelper::getRecordingEnable()
-{
-	bool result = getRecordingEnable(RECORDING_ENABLE, false);
-	return result;
-}
-
-void SettingsHelper::setRecordingFfmpegEnable(bool enable)
-{
-	setRecordingEnable(RECORDING_FFMPEG_ENABLE, enable);
-}
-
-bool SettingsHelper::getRecordingFfmpegEnable()
-{
-	bool result = getRecordingEnable(RECORDING_FFMPEG_ENABLE, false);
-	return result;
-}
-
-void SettingsHelper::setNginxEnable(bool enable)
-{
-	setRecordingEnable(NGINX_ENABLE, enable);
-}
-
-bool SettingsHelper::getNginxEnable()
-{
-	bool result = getRecordingEnable(NGINX_ENABLE, false);
-	return result;
-}
-
-bool SettingsHelper::setExportDirectory(const QString &directory)
-{
-	bool result = false;
-	QSettings settings;
-
-	if(!directory.isEmpty())
-	{
-		settings.setValue(EXPORTING_DIRECTORY, directory);
-		result = true;
-	}
-
-	return result;
-}
-
-QString SettingsHelper::getExportDirectory()
+void SettingsHelper::setAudioDefault(const QString& value)
 {
 	QSettings settings;
-	QString result = settings.value(EXPORTING_DIRECTORY, QCoreApplication::applicationDirPath()).toString();
-	return result;
+	settings.setValue(KEY_AUDIO_DEFAULT, value);
 }
 
-QString SettingsHelper::showExportingDirectory(QWidget *parent)
+QString SettingsHelper::getAudioDefault() const
 {
-	QString defDir = getExportDirectory();
-	QString dir = QFileDialog::getExistingDirectory(parent, tr("Open Directory"), defDir, QFileDialog::ShowDirsOnly);
-	setExportDirectory(dir);
-	return dir;
+	QSettings settings;
+	QString value = settings.value(KEY_AUDIO_DEFAULT).toString();
+	return value;
 }
 
-bool SettingsHelper::setIP(const QString &ip)
+void SettingsHelper::setAudioTo(const QString& value)
 {
-	bool result = false;
-	QString fileName = getSettingsPath();
-	QSettings settings(fileName, QSettings::NativeFormat);
-
-	if(!ip.isEmpty())
-	{
-		settings.setValue(FFMPEG_IP, ip);
-		result = true;
-	}
-
-	return result;
+	QSettings settings;
+	settings.setValue(KEY_AUDIO_TO, value);
 }
 
-QString SettingsHelper::getIP()
+QString SettingsHelper::getAudioTo() const
 {
-	QString fileName = getSettingsPath();
-	QSettings settings(fileName, QSettings::NativeFormat);
-	QString defHost = NetworkUtil::getIPs().first();
-	QString result = settings.value(FFMPEG_IP, defHost).toString();
-	return result;
+	QSettings settings;
+	QString value = settings.value(KEY_AUDIO_TO).toString();
+	return value;
 }
-*/
+
+void SettingsHelper::setWatchNewAudio(bool value)
+{
+	QSettings settings;
+	settings.setValue(KEY_WATCH_NEW_AUDIO, value);
+}
+
+bool SettingsHelper::getWatchNewAudio() const
+{
+	QSettings settings;
+	bool value = settings.value(KEY_WATCH_NEW_AUDIO).toBool();
+	return value;
+}
