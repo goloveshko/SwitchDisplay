@@ -1,0 +1,3 @@
+[submodule "src/external/QHotkey"]
+	path = src/external/QHotkey
+	url = https://github.com/Skycoder42/QHotkey.git
